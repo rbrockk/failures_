@@ -1,6 +1,7 @@
 import { tool } from "ai"
 import { z } from "zod"
-import { INCIDENTS, type TimeRange } from "./data"
+import { type TimeRange } from "./data"
+import { getIncidents, getIncidentByCode } from "./repository"
 
 // ---------------------------------------------------------------------------
 // listOpenCriticalIncidents
@@ -10,7 +11,8 @@ export const listOpenCriticalIncidentsTool = tool({
     "List all open or investigating incidents with critical or high severity. Use this to answer questions like 'what is urgent right now?' or 'what is the most critical incident?'",
   inputSchema: z.object({}),
   execute: async () => {
-    const results = INCIDENTS.filter(
+    const allIncidents = await getIncidents()
+    const results = allIncidents.filter(
       (i) => ["open", "investigating"].includes(i.status) && ["critical", "high"].includes(i.severity),
     ).map((i) => ({
       id: i.id,
@@ -42,9 +44,9 @@ export const getIncidentByIdTool = tool({
     id: z.string().describe("The incident ID, e.g. 'INC-001'"),
   }),
   execute: async ({ id }) => {
-    const incident = INCIDENTS.find((i) => i.id.toUpperCase() === id.toUpperCase())
+    const incident = await getIncidentByCode(id)
     if (!incident) {
-      return { error: `Incident ${id} not found. Available IDs: ${INCIDENTS.map((i) => i.id).join(", ")}` }
+      return { error: `Incident ${id} not found.` }
     }
     return { incident }
   },
@@ -60,7 +62,7 @@ export const summarizeIncidentTool = tool({
     id: z.string().describe("The incident ID, e.g. 'INC-002'"),
   }),
   execute: async ({ id }) => {
-    const incident = INCIDENTS.find((i) => i.id.toUpperCase() === id.toUpperCase())
+    const incident = await getIncidentByCode(id)
     if (!incident) {
       return { error: `Incident ${id} not found.` }
     }
@@ -96,7 +98,7 @@ export const suggestRemediationTool = tool({
     id: z.string().describe("The incident ID, e.g. 'INC-003'"),
   }),
   execute: async ({ id }) => {
-    const incident = INCIDENTS.find((i) => i.id.toUpperCase() === id.toUpperCase())
+    const incident = await getIncidentByCode(id)
     if (!incident) {
       return { error: `Incident ${id} not found.` }
     }
@@ -135,7 +137,8 @@ export const getRootCauseClustersTool = tool({
     }
     const cutoff = now - rangeMs[timeRange]
 
-    const inRange = INCIDENTS.filter((i) => new Date(i.startedAt).getTime() >= cutoff)
+    const allIncidents = await getIncidents()
+    const inRange = allIncidents.filter((i) => new Date(i.startedAt).getTime() >= cutoff)
 
     const clusters: Record<string, { count: number; incidents: string[]; avgConfidence: number }> = {}
 
@@ -175,7 +178,7 @@ export const exportIncidentMarkdownTool = tool({
     id: z.string().describe("The incident ID, e.g. 'INC-001'"),
   }),
   execute: async ({ id }) => {
-    const incident = INCIDENTS.find((i) => i.id.toUpperCase() === id.toUpperCase())
+    const incident = await getIncidentByCode(id)
     if (!incident) {
       return { error: `Incident ${id} not found.` }
     }

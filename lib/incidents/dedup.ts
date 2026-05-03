@@ -1,3 +1,4 @@
+import { prisma } from "../prisma"
 import { INCIDENTS, Incident, IncidentSeverity } from "./data"
 import { sendCriticalAlert } from "./slack"
 
@@ -27,9 +28,132 @@ export function generateFingerprint(event: IncidentEvent): string {
 
 export async function ingestIncidentEvent(event: IncidentEvent): Promise<Incident> {
   const fingerprint = generateFingerprint(event)
-  const now = new Date().toISOString()
+  const now = new Date()
 
-  // 1. Dedup: Check for open match
+  // Use Prisma if not in mock demo mode
+  if (process.env.DEMO_MODE !== "true") {
+    try {
+      // Find open/investigating incidents with matching fingerprint via EventLog
+      const existingLogs = await prisma.eventLog.findFirst({
+        where: {
+          fingerprint,
+          incident: {
+            status: { in: ["Open", "Investigating", "open", "investigating"] }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        include: { incident: true }
+      })
+
+      if (existingLogs && existingLogs.incident) {
+        const inc = existingLogs.incident
+        
+        // Update incident occurrence count and last seen
+        const updated = await prisma.incident.update({
+          where: { id: inc.id },
+          data: {
+            occurrenceCount: { increment: 1 },
+            lastSeenAt: now,
+            eventLogs: {
+              create: {
+                provider: event.provider,
+                endpoint: event.endpoint,
+                errorCode: event.errorCode,
+                normalizedMessage: event.normalizedMessage,
+                fingerprint,
+                severity: event.severity,
+                rawPayload: { message: event.rawMessage },
+                createdAt: now,
+              }
+            }
+          }
+        })
+        
+        // Return mapped
+        return {
+          id: updated.code,
+          title: updated.title,
+          severity: updated.severity.toLowerCase() as any,
+          status: updated.status.toLowerCase() as any,
+          service: updated.service || "unknown",
+          environment: updated.environment || "production",
+          startedAt: updated.firstSeenAt.toISOString(),
+          lastSeenAt: updated.lastSeenAt.toISOString(),
+          description: updated.description,
+          rootCause: updated.rootCause ? {
+            category: updated.rootCause,
+            description: "",
+            confidence: updated.confidence ?? 0
+          } : undefined,
+          affectedSystems: event.affectedSystems,
+          timeline: [], // mock
+          remediationSteps: [],
+          tags: [updated.provider],
+          fingerprint,
+          occurrenceCount: updated.occurrenceCount
+        }
+      } else {
+        // Create new
+        // Get next code number
+        const count = await prisma.incident.count()
+        const code = `INC-${String(count + 1).padStart(3, "0")}`
+        
+        const newInc = await prisma.incident.create({
+          data: {
+            code,
+            title: `[${event.provider}] ${event.errorCode} on ${event.endpoint}`,
+            provider: event.provider,
+            severity: event.severity,
+            status: "Open",
+            service: event.service,
+            environment: event.environment,
+            description: `Automated detection: ${event.rawMessage}`,
+            firstSeenAt: now,
+            lastSeenAt: now,
+            occurrenceCount: 1,
+            eventLogs: {
+              create: {
+                provider: event.provider,
+                endpoint: event.endpoint,
+                errorCode: event.errorCode,
+                normalizedMessage: event.normalizedMessage,
+                fingerprint,
+                severity: event.severity,
+                rawPayload: { message: event.rawMessage },
+                createdAt: now,
+              }
+            }
+          }
+        })
+        
+        const mapped: Incident = {
+          id: newInc.code,
+          title: newInc.title,
+          severity: newInc.severity.toLowerCase() as any,
+          status: "open",
+          service: newInc.service || "unknown",
+          environment: newInc.environment || "production",
+          startedAt: newInc.firstSeenAt.toISOString(),
+          lastSeenAt: newInc.lastSeenAt.toISOString(),
+          description: newInc.description,
+          affectedSystems: event.affectedSystems,
+          timeline: [{ at: now.toISOString(), event: `Incident automatically created from event: ${event.rawMessage}` }],
+          tags: [newInc.provider, "auto-detected"],
+          fingerprint,
+          occurrenceCount: 1
+        }
+        
+        if (event.severity === "critical" || event.severity === "high") {
+          sendCriticalAlert(mapped).catch(console.error)
+        }
+        return mapped
+      }
+    } catch (err) {
+      console.error("[DB Error] Failed to ingest to Prisma, falling back to in-memory:", err)
+    }
+  }
+
+  // MOCK/FALLBACK LOGIC
   const existingIndex = INCIDENTS.findIndex(
     (i) => i.fingerprint === fingerprint && ["open", "investigating"].includes(i.status)
   )
@@ -37,22 +161,16 @@ export async function ingestIncidentEvent(event: IncidentEvent): Promise<Inciden
   if (existingIndex !== -1) {
     const existing = INCIDENTS[existingIndex]
     existing.occurrenceCount = (existing.occurrenceCount || 1) + 1
-    existing.lastSeenAt = now
-    
-    // Only append to timeline if it's been a while or it's a significant milestone, 
-    // but for simplicity we just append the event.
-    // To prevent infinite growth, cap timeline
+    existing.lastSeenAt = now.toISOString()
     if (existing.timeline.length < 50) {
       existing.timeline.push({
-        at: now,
+        at: now.toISOString(),
         event: `Repeated failure: ${event.rawMessage} (Count: ${existing.occurrenceCount})`
       })
     }
-    
     return existing
   }
 
-  // 2. Create new incident
   const nextId = `INC-${String(INCIDENTS.length + 1).padStart(3, "0")}`
   const newIncident: Incident = {
     id: nextId,
@@ -61,12 +179,12 @@ export async function ingestIncidentEvent(event: IncidentEvent): Promise<Inciden
     status: "open",
     service: event.service,
     environment: event.environment,
-    startedAt: now,
-    lastSeenAt: now,
+    startedAt: now.toISOString(),
+    lastSeenAt: now.toISOString(),
     description: `Automated detection: ${event.rawMessage}`,
     affectedSystems: event.affectedSystems,
     timeline: [
-      { at: now, event: `Incident automatically created from event: ${event.rawMessage}` }
+      { at: now.toISOString(), event: `Incident automatically created from event: ${event.rawMessage}` }
     ],
     tags: [event.provider, event.service, "auto-detected"],
     fingerprint,
@@ -75,9 +193,7 @@ export async function ingestIncidentEvent(event: IncidentEvent): Promise<Inciden
 
   INCIDENTS.unshift(newIncident)
 
-  // 3. Slack alert for Critical
   if (event.severity === "critical" || event.severity === "high") {
-    // Fire and forget so we don't block
     sendCriticalAlert(newIncident).catch(console.error)
   }
 

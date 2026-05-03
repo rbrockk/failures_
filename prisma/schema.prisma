@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Incident {
+  id              String            @id @default(cuid())
+  code            String            @unique // e.g. INC-001
+  title           String
+  provider        String
+  severity        String            // Critical/High/Medium/Low
+  status          String            // Open/Investigating/Mitigated/Resolved
+  service         String?
+  environment     String?
+  description     String
+  
+  // Root Cause
+  rootCause       String?
+  confidence      Float?
+  
+  occurrenceCount Int               @default(1)
+  
+  firstSeenAt     DateTime          @default(now())
+  lastSeenAt      DateTime          @default(now())
+  resolvedAt      DateTime?
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  eventLogs         EventLog[]
+  detectionResults  DetectionResult[]
+  fixSteps          FixStep[]
+
+  @@index([status, severity, updatedAt(sort: Desc)])
+  @@index([provider, updatedAt(sort: Desc)])
+}
+
+model EventLog {
+  id                String   @id @default(cuid())
+  incidentId        String?
+  provider          String
+  endpoint          String?
+  errorCode         String?
+  statusCode        Int?
+  normalizedMessage String
+  fingerprint       String
+  severity          String
+  rawPayload        Json
+  requestPayload    Json?
+  responsePayload   Json?
+  
+  createdAt         DateTime @default(now())
+
+  incident          Incident? @relation(fields: [incidentId], references: [id])
+
+  @@index([createdAt(sort: Desc)])
+  @@index([provider, createdAt(sort: Desc)])
+  @@index([fingerprint, createdAt(sort: Desc)])
+  @@index([incidentId, createdAt(sort: Asc)])
+}
+
+model DetectionResult {
+  id           String   @id @default(cuid())
+  incidentId   String
+  category     String
+  confidence   Float
+  summary      String
+  evidence     Json?
+  createdAt    DateTime @default(now())
+
+  incident     Incident @relation(fields: [incidentId], references: [id])
+}
+
+model FixStep {
+  id           String   @id @default(cuid())
+  incidentId   String
+  stepNumber   Int
+  title        String
+  description  String
+  completed    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  incident     Incident @relation(fields: [incidentId], references: [id])
+}
+
+model CopilotMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String
+  content   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
