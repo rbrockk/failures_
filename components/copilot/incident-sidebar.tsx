@@ -27,17 +27,21 @@ function formatRelative(iso: string): string {
   return `${Math.round(h / 24)}d ago`
 }
 
-export function IncidentSidebar() {
+interface IncidentSidebarProps {
+  onIncidentClick?: () => void
+}
+
+export function IncidentSidebar({ onIncidentClick }: IncidentSidebarProps) {
   const open = INCIDENTS.filter((i) => i.status === "open" || i.status === "investigating")
   const recent = INCIDENTS.filter((i) => i.status === "mitigated" || i.status === "resolved").slice(0, 3)
 
   return (
-    <aside className="w-72 flex-shrink-0 border-r border-border bg-sidebar flex flex-col overflow-hidden">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 pt-4 pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-red-400" />
-          <p className="text-xs font-semibold text-foreground uppercase tracking-widest">Active Incidents</p>
+          <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+          <p className="text-xs font-semibold text-foreground uppercase tracking-wider">Active Incidents</p>
           <span className="ml-auto text-xs font-medium text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
             {open.length}
           </span>
@@ -53,9 +57,10 @@ export function IncidentSidebar() {
           </div>
         ) : (
           open.map((inc) => (
-            <div
+            <button
               key={inc.id}
-              className="group rounded-xl px-3 py-3 hover:bg-accent/50 transition-all cursor-pointer border border-transparent hover:border-border"
+              onClick={onIncidentClick}
+              className="w-full text-left group rounded-xl px-3 py-3 hover:bg-accent/50 transition-all cursor-pointer border border-transparent hover:border-border"
             >
               <div className="flex items-center justify-between gap-2 mb-1.5">
                 <div className="flex items-center gap-2 min-w-0">
@@ -66,7 +71,7 @@ export function IncidentSidebar() {
                 </div>
                 <span
                   className={cn(
-                    "text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize",
+                    "text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize whitespace-nowrap",
                     STATUS_BADGE[inc.status],
                   )}
                 >
@@ -77,14 +82,14 @@ export function IncidentSidebar() {
                 {inc.title}
               </p>
               <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
-                <span className="font-mono">{inc.service}</span>
-                <span className="text-border">•</span>
-                <span className="flex items-center gap-1">
+                <span className="font-mono truncate">{inc.service}</span>
+                <span className="text-border shrink-0">•</span>
+                <span className="flex items-center gap-1 shrink-0">
                   <Clock className="w-3 h-3" />
                   {formatRelative(inc.startedAt)}
                 </span>
               </div>
-            </div>
+            </button>
           ))
         )}
 
@@ -92,12 +97,13 @@ export function IncidentSidebar() {
         {recent.length > 0 && (
           <>
             <div className="px-3 pt-5 pb-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Recent</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recent</p>
             </div>
             {recent.map((inc) => (
-              <div
+              <button
                 key={inc.id}
-                className="group rounded-xl px-3 py-3 hover:bg-accent/50 transition-all cursor-pointer opacity-60 hover:opacity-100 border border-transparent hover:border-border"
+                onClick={onIncidentClick}
+                className="w-full text-left group rounded-xl px-3 py-3 hover:bg-accent/50 transition-all cursor-pointer opacity-60 hover:opacity-100 border border-transparent hover:border-border"
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <div className="flex items-center gap-2 min-w-0">
@@ -106,7 +112,7 @@ export function IncidentSidebar() {
                   </div>
                   <span
                     className={cn(
-                      "text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize",
+                      "text-[10px] font-medium px-1.5 py-0.5 rounded border capitalize whitespace-nowrap",
                       STATUS_BADGE[inc.status],
                     )}
                   >
@@ -114,33 +120,33 @@ export function IncidentSidebar() {
                   </span>
                 </div>
                 <p className="text-sm font-medium text-foreground leading-snug line-clamp-2">{inc.title}</p>
-              </div>
+              </button>
             ))}
           </>
         )}
       </div>
 
       {/* Stats footer */}
-      <div className="border-t border-border px-4 py-4">
-        <div className="grid grid-cols-3 gap-3">
+      <div className="border-t border-border px-4 py-3 bg-sidebar">
+        <div className="grid grid-cols-3 gap-2">
           <div className="text-center">
-            <p className="text-lg font-bold text-red-400 tabular-nums">
+            <p className="text-base font-bold text-red-400 tabular-nums">
               {INCIDENTS.filter((i) => i.severity === "critical").length}
             </p>
             <p className="text-[10px] text-muted-foreground font-medium">Critical</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-amber-400 tabular-nums">{open.length}</p>
+            <p className="text-base font-bold text-amber-400 tabular-nums">{open.length}</p>
             <p className="text-[10px] text-muted-foreground font-medium">Open</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-emerald-400 tabular-nums">
+            <p className="text-base font-bold text-emerald-400 tabular-nums">
               {INCIDENTS.filter((i) => i.status === "resolved").length}
             </p>
             <p className="text-[10px] text-muted-foreground font-medium">Resolved</p>
           </div>
         </div>
       </div>
-    </aside>
+    </div>
   )
 }
