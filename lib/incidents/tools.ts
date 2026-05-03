@@ -218,4 +218,4 @@ export const copilotTools = {
   suggestRemediation: suggestRemediationTool,
   getRootCauseClusters: getRootCauseClustersTool,
   exportIncidentMarkdown: exportIncidentMarkdownTool,
-} as const
+}
