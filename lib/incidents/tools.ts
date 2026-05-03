@@ -21,7 +21,14 @@ export const listOpenCriticalIncidentsTool = tool({
       startedAt: i.startedAt,
       affectedSystems: i.affectedSystems,
     }))
-    return { incidents: results, total: results.length }
+    
+    // Cost/latency mode: Limit context to top 5
+    const top5 = results.slice(0, 5)
+    return { 
+      incidents: top5, 
+      total: results.length,
+      note: results.length > 5 ? `Showing top 5 out of ${results.length} critical incidents.` : undefined
+    }
   },
 })
 

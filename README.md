@@ -38,3 +38,11 @@ The system is configured by default to try them in the following order:
 - **401 Unauthorized**: Double-check your API key in your environment variables. Ensure you restarted your dev server after changing the `.env` file.
 - **429 Too Many Requests**: You have hit the rate limit for the current provider. The system should automatically fall back to the next provider. If you see the "Degraded: Rules-only" badge, all providers are rate-limited or failed.
 - **Model not found**: Ensure the model string specified in your `.env` (e.g., `GROQ_MODEL`) matches exactly what the provider expects. Providers frequently deprecate or rename models.
+
+## Production Improvements
+
+This project includes high-impact production reliability features:
+
+1. **Incident Deduplication**: An automated fingerprinting engine (`lib/incidents/dedup.ts`) groups identical recurring incidents to prevent alert storms. If an incident is open, occurrences are appended instead of creating new tickets.
+2. **Slack Alerts**: Provide a `SLACK_WEBHOOK_URL` in your `.env` to automatically receive compact Slack payloads when Critical or High severity incidents occur.
+3. **Cost/Latency Mode**: The Copilot automatically caches identical query patterns in memory (3 min TTL) and limits context windows to the top 5 incidents to minimize expensive LLM context tokens and decrease response latency.

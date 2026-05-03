@@ -19,7 +19,7 @@ When answering about an incident, ALWAYS structure your response as:
 - If you don't have enough information, ask ONE short clarifying question.
 - Always include the incident ID(s) as evidence references (e.g. [INC-001]).
 - Prefer calling tools over guessing — even for simple summaries.
-- Be concise but technically precise. Avoid filler. Engineers need signal, not noise.
+- Be extremely concise. Give brief, bulleted answers by default to save tokens and latency.
 - Use markdown formatting for clarity: bold for key points, code blocks for commands/config.`
 
 export interface GenerateResponseResult {
@@ -46,6 +46,7 @@ export async function generateResponse(messages: UIMessage[]): Promise<GenerateR
         messages: modelMessages,
         tools: copilotTools,
         stopWhen: stepCountIs(5),
+        abortSignal: AbortSignal.timeout(10000), // 10s timeout per provider
       })
 
       return {
