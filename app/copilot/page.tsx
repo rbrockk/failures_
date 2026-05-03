@@ -4,7 +4,7 @@ import { useState } from "react"
 import type { Metadata } from "next"
 import { IncidentSidebar } from "@/components/copilot/incident-sidebar"
 import { CopilotChat } from "@/components/copilot/copilot-chat"
-import { Activity, ChevronRight, Sparkles, Menu, X } from "lucide-react"
+import { Activity, ChevronRight, Sparkles, Menu, X, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { INCIDENTS } from "@/lib/incidents/data"
 import { cn } from "@/lib/utils"
@@ -25,6 +25,18 @@ export default function CopilotPage() {
 
       {/* Top nav */}
       <header className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 border-b border-border bg-card/80 backdrop-blur-sm shrink-0 z-30">
+        {/* Back to dashboard */}
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-xs sm:text-sm font-medium shrink-0"
+          aria-label="Back to incidents"
+        >
+          <ArrowLeft className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+          <span className="hidden sm:inline">Incidents</span>
+        </Link>
+
+        <div className="w-px h-4 bg-border shrink-0" />
+
         {/* Mobile menu toggle */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
