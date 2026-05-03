@@ -1,34 +1,27 @@
 "use client"
 
-import type { UIMessage } from "ai"
 import { cn } from "@/lib/utils"
-import { Bot, User, Wrench, AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
+import { Bot, User, AlertCircle, CheckCircle2, Loader2, Wrench } from "lucide-react"
 
-function getUIMessageText(msg: UIMessage): string {
-  if (!msg.parts || !Array.isArray(msg.parts)) return ""
-  return msg.parts
-    .filter((p): p is { type: "text"; text: string } => p.type === "text")
-    .map((p) => p.text)
-    .join("")
+export interface SimpleMessage {
+  id: string
+  role: "user" | "assistant"
+  content: string
 }
 
 interface ChatMessageProps {
-  message: UIMessage
+  message: SimpleMessage
 }
 
 function MarkdownText({ text }: { text: string }) {
-  // Minimal inline markdown: bold, inline code, code blocks
   const lines = text.split("\n")
   return (
     <div className="space-y-1 leading-relaxed">
       {lines.map((line, i) => {
-        // Code block start/end handled as raw
         if (line.startsWith("```")) return <div key={i} className="font-mono text-xs text-muted-foreground">{line}</div>
-        // Headings
         if (line.startsWith("### ")) return <h3 key={i} className="font-semibold text-sm mt-3 mb-1 text-foreground">{line.slice(4)}</h3>
         if (line.startsWith("## ")) return <h2 key={i} className="font-semibold text-sm mt-3 mb-1 text-foreground border-b border-border pb-1">{line.slice(3)}</h2>
         if (line.startsWith("# ")) return <h1 key={i} className="font-semibold text-base mt-2 mb-1 text-foreground">{line.slice(2)}</h1>
-        // List items
         if (line.startsWith("- ") || line.startsWith("* ")) {
           return (
             <div key={i} className="flex gap-2">
@@ -37,7 +30,6 @@ function MarkdownText({ text }: { text: string }) {
             </div>
           )
         }
-        // Numbered list
         const numbered = line.match(/^(\d+)\.\s(.+)/)
         if (numbered) {
           return (
@@ -47,11 +39,8 @@ function MarkdownText({ text }: { text: string }) {
             </div>
           )
         }
-        // Table rows
         if (line.startsWith("|")) {
-          return (
-            <div key={i} className="font-mono text-xs text-muted-foreground">{line}</div>
-          )
+          return <div key={i} className="font-mono text-xs text-muted-foreground">{line}</div>
         }
         if (line.trim() === "") return <div key={i} className="h-1" />
         return <p key={i}>{renderInline(line)}</p>
@@ -61,7 +50,6 @@ function MarkdownText({ text }: { text: string }) {
 }
 
 function renderInline(text: string): React.ReactNode {
-  // **bold**, `code`, [INC-xxx] references
   const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[INC-\d+\])/g)
   return (
     <>
@@ -89,44 +77,9 @@ function renderInline(text: string): React.ReactNode {
   )
 }
 
-function ToolCallPart({ part }: { part: UIMessage["parts"][number] }) {
-  if (part.type !== "tool-invocation") return null
-  const { toolName, state } = part.toolInvocation
-
-  const toolLabels: Record<string, string> = {
-    listOpenCriticalIncidents: "Listing critical incidents",
-    getIncidentById: "Fetching incident details",
-    summarizeIncident: "Summarizing incident",
-    suggestRemediation: "Loading remediation steps",
-    getRootCauseClusters: "Analysing root cause clusters",
-    exportIncidentMarkdown: "Generating incident report",
-  }
-
-  const label = toolLabels[toolName] ?? `Calling ${toolName}`
-
-  return (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 border border-border rounded px-3 py-1.5 my-1">
-      {state === "output-available" ? (
-        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-      ) : state === "output-error" ? (
-        <AlertCircle className="w-3.5 h-3.5 text-destructive shrink-0" />
-      ) : (
-        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-blue-400" />
-      )}
-      <Wrench className="w-3 h-3 shrink-0" />
-      <span>{label}</span>
-      {"input" in part.toolInvocation && "id" in (part.toolInvocation.input as object ?? {}) && (
-        <span className="font-mono text-blue-400">
-          {(part.toolInvocation.input as { id?: string }).id ?? ""}
-        </span>
-      )}
-    </div>
-  )
-}
-
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user"
-  const text = getUIMessageText(message)
+  const text = message.content
 
   return (
     <div className={cn("flex gap-3 px-4 py-3", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -142,12 +95,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
       {/* Content */}
       <div className={cn("flex flex-col gap-1 max-w-[85%]", isUser && "items-end")}>
-        {/* Tool call indicators (assistant only) */}
-        {!isUser &&
-          message.parts
-            ?.filter((p) => p.type === "tool-invocation")
-            .map((p, i) => <ToolCallPart key={i} part={p} />)}
-
         {/* Text bubble */}
         {text && (
           <div
