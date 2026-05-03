@@ -16,16 +16,19 @@ export interface Incident {
   environment: string
   startedAt: string
   resolvedAt?: string
+  lastSeenAt?: string
   description: string
   rootCause?: RootCause
   affectedSystems: string[]
   timeline: { at: string; event: string }[]
   remediationSteps?: string[]
   tags: string[]
+  fingerprint?: string
+  occurrenceCount?: number
 }
 
 // Seed data — realistic integration failure scenarios
-export const INCIDENTS: Incident[] = [
+export let INCIDENTS: Incident[] = [
   {
     id: "INC-001",
     title: "Payment Gateway Timeout Cascade",
