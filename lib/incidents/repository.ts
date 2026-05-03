@@ -2,7 +2,7 @@ import { prisma } from "../prisma"
 import { INCIDENTS as MOCK_INCIDENTS } from "./data"
 
 export async function getIncidents() {
-  if (process.env.DEMO_MODE === "true") {
+  if (process.env.DEMO_MODE === "true" || !prisma) {
     return MOCK_INCIDENTS
   }
   
@@ -42,7 +42,7 @@ export async function getIncidents() {
 }
 
 export async function getIncidentByCode(code: string) {
-  if (process.env.DEMO_MODE === "true") {
+  if (process.env.DEMO_MODE === "true" || !prisma) {
     return MOCK_INCIDENTS.find(i => i.id.toUpperCase() === code.toUpperCase())
   }
   
