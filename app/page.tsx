@@ -7,10 +7,14 @@ import { IncidentTable } from "@/components/incident-table"
 import { KpiCards } from "@/components/kpi-cards"
 import { HowItWorks } from "@/components/how-it-works"
 
-export default function HomePage() {
-  const openCount = INCIDENTS.filter((i) => ["open", "investigating"].includes(i.status)).length
-  const criticalCount = INCIDENTS.filter((i) => i.severity === "critical").length
-  const resolvedCount = INCIDENTS.filter((i) => i.status === "resolved").length
+import { getIncidents } from "@/lib/incidents/repository"
+import { Incident } from "@/lib/incidents/data"
+
+export default async function HomePage() {
+  const incidents = await getIncidents()
+  const openCount = incidents.filter((i: Incident) => ["open", "investigating"].includes(i.status)).length
+  const criticalCount = incidents.filter((i: Incident) => i.severity === "critical").length
+  const resolvedCount = incidents.filter((i: Incident) => i.status === "resolved").length
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -61,7 +65,7 @@ export default function HomePage() {
           </div>
 
           <IncidentFilters />
-          <IncidentTable incidents={INCIDENTS} />
+          <IncidentTable incidents={incidents} />
         </div>
 
         {/* Copilot CTA */}

@@ -11,10 +11,38 @@
 This changelog documents all UI/UX enhancements implemented to improve the visual design, user experience, and demo impact of the Integration Failure Detective application.
 
 ### Key Improvements:
+- **Backend & Database:** Replaced in-memory mocks with a production-ready PostgreSQL + Prisma architecture.
+- **Deduplication Engine:** Automated fingerprinting to group recurring incidents.
 - **Dashboard Page:** Enhanced header, KPI cards with trends, filterable incident table, storytelling sections
 - **Copilot Page:** Improved navigation header, better incident sidebar styling, enhanced chat experience
 - **New Components:** 5 new reusable components for better code organization
 - **Visual Polish:** Consistent spacing, hover states, animations, and color system
+
+---
+
+## 🗄️ Backend & Database Persistence
+
+We implemented a robust data layer for Hackathon scalability:
+- **PostgreSQL + Prisma:** Full schema for `Incident`, `EventLog`, `DetectionResult`, and `FixStep` models.
+- **Prisma Singleton:** Safe database connection handling for Vercel's serverless environment.
+- **Repository Pattern (`lib/incidents/repository.ts`):** Separated data access from UI, adding graceful fallback to `DEMO_MODE` if the database fails.
+- **Deduplication (`lib/incidents/dedup.ts`):** Groups identical errors by hashing endpoints and messages to prevent alert fatigue.
+
+---
+
+## 🚀 Vercel Deployment Requirements
+
+To ensure the application functions perfectly on Vercel:
+
+1. **Database Setup:** 
+   - You need a PostgreSQL database (e.g., Neon or Supabase).
+2. **Environment Variables (Vercel Settings):**
+   - `DATABASE_URL`: Connection string for Prisma.
+   - `DIRECT_URL`: (Optional) Required if using connection pooling.
+   - `DEMO_MODE`: Set to `"false"` to use DB, or `"true"` to fallback to mock data instantly.
+   - `SLACK_WEBHOOK_URL`: (Optional) Webhook for Critical incident alerts.
+3. **Build Configuration:**
+   - The `package.json` now includes `"postinstall": "prisma generate"` which Vercel will execute automatically to build the Prisma Client before deployment.
 
 ---
 
