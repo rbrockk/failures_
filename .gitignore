@@ -16,3 +16,4 @@ node_modules
 .next/
 .DS_Store
 tsconfig.tsbuildinfo
+CHANGELOG_UI_IMPROVEMENTS.md
