@@ -37,7 +37,35 @@ The system is configured by default to try them in the following order:
 
 - **401 Unauthorized**: Double-check your API key in your environment variables. Ensure you restarted your dev server after changing the `.env` file.
 - **429 Too Many Requests**: You have hit the rate limit for the current provider. The system should automatically fall back to the next provider. If you see the "Degraded: Rules-only" badge, all providers are rate-limited or failed.
-- **Model not found**: Ensure the model string specified in your `.env` (e.g., `GROQ_MODEL`) matches exactly what the provider expects. Providers frequently deprecate or rename models.
+## Database Persistence (PostgreSQL + Prisma)
+
+This project uses PostgreSQL for robust event log and incident storage. 
+
+### Local / Vercel Setup (Neon or Supabase)
+
+1. Create a free PostgreSQL database on [Neon.tech](https://neon.tech) or [Supabase](https://supabase.com).
+2. Copy `.env.example` to `.env` (or `.env.local`) and configure:
+   ```env
+   DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+   # If using connection pooling (like Prisma Accelerate or Supabase pooler), set DIRECT_URL too:
+   DIRECT_URL="postgresql://user:password@host/dbname?sslmode=require"
+   DEMO_MODE=false
+   ```
+3. Generate the Prisma Client and push the schema to your database:
+   ```powershell
+   npx prisma generate
+   npx prisma db push
+   ```
+4. Seed the database with realistic demo data:
+   ```powershell
+   npx prisma db seed
+   ```
+
+### Troubleshooting Prisma on Vercel
+
+If Vercel fails to build with Prisma client errors:
+- Ensure `postinstall": "prisma generate` is in your `package.json` scripts.
+- Double-check that both `DATABASE_URL` and `DIRECT_URL` (if needed) are set in your Vercel project's Environment Variables.
 
 ## Production Improvements
 
