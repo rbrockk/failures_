@@ -13,8 +13,8 @@ export const listOpenCriticalIncidentsTool = tool({
   execute: async () => {
     const allIncidents = await getIncidents()
     const results = allIncidents.filter(
-      (i) => ["open", "investigating"].includes(i.status) && ["critical", "high"].includes(i.severity),
-    ).map((i) => ({
+      (i: any) => ["open", "investigating"].includes(i.status) && ["critical", "high"].includes(i.severity),
+    ).map((i: any) => ({
       id: i.id,
       title: i.title,
       severity: i.severity,
@@ -138,7 +138,7 @@ export const getRootCauseClustersTool = tool({
     const cutoff = now - rangeMs[timeRange]
 
     const allIncidents = await getIncidents()
-    const inRange = allIncidents.filter((i) => new Date(i.startedAt).getTime() >= cutoff)
+    const inRange = allIncidents.filter((i: any) => new Date(i.startedAt).getTime() >= cutoff)
 
     const clusters: Record<string, { count: number; incidents: string[]; avgConfidence: number }> = {}
 
@@ -208,10 +208,10 @@ export const exportIncidentMarkdownTool = tool({
       incident.affectedSystems.map((s) => `- ${s}`).join("\n"),
       "",
       `## Timeline`,
-      incident.timeline.map((e) => `- \`${e.at}\` — ${e.event}`).join("\n"),
+      incident.timeline.map((e: any) => `- \`${e.at}\` — ${e.event}`).join("\n"),
       "",
       `## Remediation Steps`,
-      incident.remediationSteps?.map((s, i) => `${i + 1}. ${s}`).join("\n") ?? "TBD",
+      incident.remediationSteps?.map((s: any, i: any) => `${i + 1}. ${s}`).join("\n") ?? "TBD",
     ]
 
     return { id: incident.id, markdown: lines.filter((l) => l !== null).join("\n") }
