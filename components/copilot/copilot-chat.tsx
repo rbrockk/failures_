@@ -150,16 +150,18 @@ export function CopilotChat() {
     <div className="flex flex-col h-full relative">
       {/* Provider Badge */}
       {providerInfo && (
-        <div className="absolute top-3 right-4 z-10">
+        <div className="absolute top-2 sm:top-3 right-2 sm:right-4 z-10">
           {providerInfo.degraded ? (
-            <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg font-medium border border-amber-500/20 backdrop-blur-md shadow-lg">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Degraded Mode: Rules-only</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-amber-400 bg-amber-500/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium border border-amber-500/20 backdrop-blur-md shadow-lg">
+              <AlertTriangle className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Degraded Mode: Rules-only</span>
+              <span className="sm:hidden">Degraded</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card/90 px-3 py-1.5 rounded-lg font-medium border border-border backdrop-blur-md shadow-lg">
-              <Zap className="w-3.5 h-3.5 text-emerald-400" />
-              <span>AI Provider: {providerInfo.provider.charAt(0).toUpperCase() + providerInfo.provider.slice(1)}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground bg-card/90 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium border border-border backdrop-blur-md shadow-lg">
+              <Zap className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-emerald-400 shrink-0" />
+              <span className="hidden sm:inline">AI Provider: {providerInfo.provider.charAt(0).toUpperCase() + providerInfo.provider.slice(1)}</span>
+              <span className="sm:hidden">{providerInfo.provider}</span>
             </div>
           )}
         </div>
@@ -167,11 +169,11 @@ export function CopilotChat() {
 
       {/* Unavailable banner */}
       {apiUnavailable && (
-        <div className="flex items-start gap-3 m-4 p-4 rounded-xl border border-amber-800/60 bg-amber-950/30 text-amber-300 text-sm">
-          <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2 sm:gap-3 m-2 sm:m-4 p-2 sm:p-4 rounded-lg sm:rounded-xl border border-amber-800/60 bg-amber-950/30 text-amber-300 text-xs sm:text-sm">
+          <AlertTriangle className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 shrink-0" />
           <div>
-            <p className="font-semibold mb-1">Copilot Unavailable</p>
-            <p className="text-amber-400/80">{unavailableMsg}</p>
+            <p className="font-semibold mb-0.5 sm:mb-1">Copilot Unavailable</p>
+            <p className="text-amber-400/80 text-xs">{unavailableMsg}</p>
           </div>
         </div>
       )}
@@ -181,30 +183,30 @@ export function CopilotChat() {
         {messages.length === 0 && !apiUnavailable ? (
           <StarterPrompts onSelect={handleStarterSelect} />
         ) : (
-          <div className="py-4">
+          <div className="py-2 sm:py-4 px-2 sm:px-4">
             {messages.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))}
 
             {/* Typing indicator */}
             {isLoading && messages[messages.length - 1]?.role === "user" && (
-              <div className="flex gap-3 px-4 py-4">
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/20">
-                  <Loader2 className="w-4 h-4 text-white animate-spin" />
+              <div className="flex gap-2 sm:gap-3 py-2 sm:py-4">
+                <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/20">
+                  <Loader2 className="w-3 sm:w-4 h-3 sm:h-4 text-white animate-spin" />
                 </div>
-                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border">
-                  <span className="inline-block w-2 h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:0ms]" />
-                  <span className="inline-block w-2 h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:150ms]" />
-                  <span className="inline-block w-2 h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:300ms]" />
-                  <span className="text-sm text-muted-foreground ml-2">Analyzing incident data...</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-card border border-border">
+                  <span className="inline-block w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:0ms]" />
+                  <span className="inline-block w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:150ms]" />
+                  <span className="inline-block w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:300ms]" />
+                  <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-2">Analyzing incident data...</span>
                 </div>
               </div>
             )}
 
             {/* Error state */}
             {errorMsg && (
-              <div className="mx-4 mb-2 flex items-center gap-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3">
-                <AlertTriangle className="w-5 h-5 shrink-0" />
+              <div className="mx-0 sm:mx-4 mb-2 flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3">
+                <AlertTriangle className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -212,11 +214,11 @@ export function CopilotChat() {
         )}
       </div>
 
-      {/* Input area */}
-      <div className="border-t border-border bg-background/80 backdrop-blur-sm p-4">
+      {/* Input area - sticky/fixed at bottom with safe area */}
+      <div className="border-t border-border bg-background/80 backdrop-blur-sm p-2 sm:p-4 sticky bottom-0 sm:static safe-area-inset-bottom">
         <div
           className={cn(
-            "flex items-end gap-3 rounded-xl border bg-card px-4 py-3 transition-all shadow-lg",
+            "flex items-end gap-2 sm:gap-3 rounded-lg sm:rounded-xl border bg-card px-2 sm:px-4 py-2 sm:py-3 transition-all shadow-lg",
             isLoading ? "border-border" : "border-border focus-within:border-blue-500/50 focus-within:shadow-blue-500/10",
           )}
         >
@@ -225,34 +227,35 @@ export function CopilotChat() {
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about an incident, root cause, or fix plan..."
+            placeholder="Ask about an incident..."
             disabled={apiUnavailable}
             rows={1}
-            className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-40 leading-relaxed py-0.5"
+            className="flex-1 resize-none bg-transparent text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-40 leading-relaxed py-0.5"
             style={{ height: "24px" }}
           />
           {isLoading ? (
             <button
               onClick={handleStop}
-              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              className="flex-shrink-0 w-8 sm:w-9 h-8 sm:h-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
               title="Stop generation"
             >
-              <StopCircle className="w-5 h-5" />
+              <StopCircle className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
           ) : (
             <button
               onClick={handleSend}
               disabled={!input.trim() || apiUnavailable}
-              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-blue-600 text-white hover:bg-blue-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30"
+              className="flex-shrink-0 w-8 sm:w-9 h-8 sm:h-9 rounded-lg flex items-center justify-center bg-blue-600 text-white hover:bg-blue-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30"
               title="Send message"
             >
-              <SendHorizonal className="w-4 h-4" />
+              <SendHorizonal className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
             </button>
           )}
         </div>
-        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-          <Shield className="w-3 h-3" />
-          <span>Copilot uses real incident data. Always verify before acting.</span>
+        <div className="flex items-center justify-center gap-1 mt-2 text-xs text-muted-foreground">
+          <Shield className="w-3 h-3 shrink-0" />
+          <span className="hidden sm:inline">Copilot uses real incident data. Always verify before acting.</span>
+          <span className="sm:hidden">Real data - verify before acting</span>
         </div>
       </div>
     </div>
