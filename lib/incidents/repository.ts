@@ -12,7 +12,7 @@ export async function getIncidents() {
     })
     
     // Map to expected UI model format if needed
-    return incidents.map(inc => ({
+    return incidents.map((inc: any) => ({
       id: inc.code, // UI expects string IDs like INC-001
       title: inc.title,
       severity: inc.severity.toLowerCase() as any,
@@ -78,11 +78,11 @@ export async function getIncidentByCode(code: string) {
         confidence: inc.confidence ?? 0
       } : undefined,
       affectedSystems: [], 
-      timeline: inc.eventLogs.map(log => ({
+      timeline: inc.eventLogs.map((log: any) => ({
         at: log.createdAt.toISOString(),
         event: log.normalizedMessage
       })),
-      remediationSteps: inc.fixSteps.map(step => step.title),
+      remediationSteps: inc.fixSteps.map((step: any) => step.title),
       tags: [inc.provider],
       occurrenceCount: inc.occurrenceCount
     }

@@ -35,11 +35,42 @@ function formatRelative(iso: string): string {
   return `${Math.round(h / 24)}d ago`
 }
 
+import { useState, useEffect } from "react"
+
 interface IncidentTableProps {
   incidents: Incident[]
 }
 
-export function IncidentTable({ incidents }: IncidentTableProps) {
+export function IncidentTable({ incidents: initialIncidents }: IncidentTableProps) {
+  const [incidents, setIncidents] = useState<Incident[]>(initialIncidents)
+
+  // Poll new data from backend every 5 seconds
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    
+    async function poll() {
+      try {
+        const res = await fetch("/api/incidents")
+        if (res.ok) {
+          const data = await res.json()
+          if (data.incidents) {
+            setIncidents(data.incidents)
+          }
+        }
+      } catch (err) {
+        console.error("Failed to poll incidents:", err)
+      }
+    }
+
+    timer = setInterval(poll, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Keep up to date if initialIncidents changes
+  useEffect(() => {
+    setIncidents(initialIncidents)
+  }, [initialIncidents])
+
   if (incidents.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-12 text-center">
