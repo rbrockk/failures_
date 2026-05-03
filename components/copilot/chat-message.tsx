@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Bot, User, AlertCircle, CheckCircle2, Loader2, Wrench } from "lucide-react"
+import { Bot, User } from "lucide-react"
 
 export interface SimpleMessage {
   id: string
@@ -16,16 +16,16 @@ interface ChatMessageProps {
 function MarkdownText({ text }: { text: string }) {
   const lines = text.split("\n")
   return (
-    <div className="space-y-1 leading-relaxed">
+    <div className="space-y-1.5 leading-relaxed">
       {lines.map((line, i) => {
         if (line.startsWith("```")) return <div key={i} className="font-mono text-xs text-muted-foreground">{line}</div>
-        if (line.startsWith("### ")) return <h3 key={i} className="font-semibold text-sm mt-3 mb-1 text-foreground">{line.slice(4)}</h3>
-        if (line.startsWith("## ")) return <h2 key={i} className="font-semibold text-sm mt-3 mb-1 text-foreground border-b border-border pb-1">{line.slice(3)}</h2>
-        if (line.startsWith("# ")) return <h1 key={i} className="font-semibold text-base mt-2 mb-1 text-foreground">{line.slice(2)}</h1>
+        if (line.startsWith("### ")) return <h3 key={i} className="font-semibold text-sm mt-4 mb-1.5 text-foreground">{line.slice(4)}</h3>
+        if (line.startsWith("## ")) return <h2 key={i} className="font-semibold text-sm mt-4 mb-1.5 text-foreground border-b border-border pb-1.5">{line.slice(3)}</h2>
+        if (line.startsWith("# ")) return <h1 key={i} className="font-semibold text-base mt-3 mb-1.5 text-foreground">{line.slice(2)}</h1>
         if (line.startsWith("- ") || line.startsWith("* ")) {
           return (
-            <div key={i} className="flex gap-2">
-              <span className="text-muted-foreground mt-1 shrink-0">•</span>
+            <div key={i} className="flex gap-2.5 ml-1">
+              <span className="text-blue-400 mt-0.5 shrink-0">•</span>
               <span>{renderInline(line.slice(2))}</span>
             </div>
           )
@@ -33,16 +33,16 @@ function MarkdownText({ text }: { text: string }) {
         const numbered = line.match(/^(\d+)\.\s(.+)/)
         if (numbered) {
           return (
-            <div key={i} className="flex gap-2">
-              <span className="text-muted-foreground shrink-0 font-mono text-xs w-4 mt-0.5">{numbered[1]}.</span>
+            <div key={i} className="flex gap-2.5 ml-1">
+              <span className="text-blue-400 shrink-0 font-mono text-xs w-5 mt-0.5">{numbered[1]}.</span>
               <span>{renderInline(numbered[2])}</span>
             </div>
           )
         }
         if (line.startsWith("|")) {
-          return <div key={i} className="font-mono text-xs text-muted-foreground">{line}</div>
+          return <div key={i} className="font-mono text-xs text-muted-foreground overflow-x-auto">{line}</div>
         }
-        if (line.trim() === "") return <div key={i} className="h-1" />
+        if (line.trim() === "") return <div key={i} className="h-2" />
         return <p key={i}>{renderInline(line)}</p>
       })}
     </div>
@@ -59,14 +59,14 @@ function renderInline(text: string): React.ReactNode {
         }
         if (part.startsWith("`") && part.endsWith("`")) {
           return (
-            <code key={i} className="font-mono text-xs bg-muted px-1 py-0.5 rounded text-amber-400">
+            <code key={i} className="font-mono text-xs bg-muted/80 px-1.5 py-0.5 rounded text-amber-400 border border-border">
               {part.slice(1, -1)}
             </code>
           )
         }
         if (part.match(/^\[INC-\d+\]$/)) {
           return (
-            <span key={i} className="font-mono text-xs bg-blue-950 text-blue-400 border border-blue-800 px-1.5 py-0.5 rounded">
+            <span key={i} className="font-mono text-xs bg-blue-950/50 text-blue-400 border border-blue-800/50 px-1.5 py-0.5 rounded">
               {part.slice(1, -1)}
             </span>
           )
@@ -86,11 +86,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
       {/* Avatar */}
       <div
         className={cn(
-          "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center mt-0.5",
-          isUser ? "bg-primary text-primary-foreground" : "bg-blue-600 text-white",
+          "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 shadow-lg",
+          isUser 
+            ? "bg-primary text-primary-foreground" 
+            : "bg-blue-600 text-white shadow-blue-600/20",
         )}
       >
-        {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
+        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
       </div>
 
       {/* Content */}
@@ -99,13 +101,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {text && (
           <div
             className={cn(
-              "rounded-lg px-3.5 py-2.5 text-sm",
+              "rounded-2xl px-4 py-3 text-sm shadow-lg",
               isUser
-                ? "bg-primary text-primary-foreground rounded-br-none"
-                : "bg-card border border-border text-foreground rounded-bl-none",
+                ? "bg-blue-600 text-white rounded-br-md shadow-blue-600/20"
+                : "bg-card border border-border text-foreground rounded-bl-md",
             )}
           >
-            {isUser ? <p>{text}</p> : <MarkdownText text={text} />}
+            {isUser ? <p className="leading-relaxed">{text}</p> : <MarkdownText text={text} />}
           </div>
         )}
       </div>
